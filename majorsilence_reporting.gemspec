@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.name        = 'majorsilence_reporting'
   spec.version     = MajorsilenceReporting::VERSION
   spec.authors     = ['Peter Gill']
-  spec.email       = ['peter.m.gill@gmail.com']
+  spec.email       = ['peter@majorsilence.com']
 
   spec.summary     = 'Ruby bindings for Majorsilence Reporting'
   spec.description = 'Ruby wrappers for Majorsilence Reporting -- render RDL reports to PDF, ' \
