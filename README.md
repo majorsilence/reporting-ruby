@@ -12,6 +12,24 @@ Three wrappers are provided for generating reports from Ruby. Pick the one that 
 
 ---
 
+## Installation
+
+Install from [RubyGems](https://rubygems.org/gems/majorsilence_reporting):
+
+```bash
+gem install majorsilence_reporting
+```
+
+Or add it to your `Gemfile`:
+
+```ruby
+gem 'majorsilence_reporting'
+```
+
+The gem itself has no runtime dependencies -- it uses the Ruby standard library only (`fiddle`, `fileutils`, `tempfile`). You still need one of the RdlCmd/rdlnative artifacts described below, matching the wrapper you choose.
+
+---
+
 ## Setup
 
 ### Install Ruby
@@ -203,3 +221,34 @@ See the `Examples/` subdirectory for runnable scripts:
 - `test1.rb` — basic PDF export to file
 - `test2-parameters.rb` — passing report parameters
 - `test3-streaming.rb` — exporting to memory for streaming responses
+- `test4-export-multiple-formats.rb` — exporting the same report to several formats
+- `test5-set-data-from-code.rb` — supplying dataset rows from code instead of a database
+
+---
+
+## Releasing (maintainers)
+
+Releases are published to [RubyGems](https://rubygems.org/gems/majorsilence_reporting) by `.github/workflows/publish.yml` using [Trusted Publishing](https://guides.rubygems.org/trusted-publishing/) (OIDC) -- no API key is stored in this repo.
+
+One-time setup on rubygems.org, under Profile -> Trusted publishers (or "Pending trusted publishers" before the gem's first release):
+
+| Field | Value |
+|---|---|
+| Gem name | `majorsilence_reporting` |
+| Repository owner | `majorsilence` |
+| Repository name | `reporting-ruby` |
+| Workflow filename | `publish.yml` |
+| Environment | `release` |
+
+To cut a release:
+
+```bash
+# Bump the version
+$EDITOR lib/majorsilence_reporting/version.rb
+
+git commit -am "Release vX.Y.Z"
+git tag vX.Y.Z
+git push origin main --tags
+```
+
+Pushing the `vX.Y.Z` tag triggers the workflow, which runs the test suite and then uses [`rubygems/release-gem`](https://github.com/rubygems/release-gem) to build and push the gem.

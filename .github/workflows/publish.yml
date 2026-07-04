@@ -1,0 +1,45 @@
+name: Publish to RubyGems
+
+# Trusted Publishing: pushing a `v*` tag builds the gem and pushes it to
+# RubyGems.org via OIDC -- no API key stored in this repo.
+#
+# One-time setup on rubygems.org (see https://guides.rubygems.org/trusted-publishing/):
+#   Profile -> Trusted publishers (or "Pending trusted publishers" before the
+#   first release) -> Create, with:
+#     Gem name:        majorsilence_reporting
+#     Repository owner: majorsilence
+#     Repository name:  reporting-ruby
+#     Workflow filename: publish.yml
+#     Environment:       release
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: {}
+
+jobs:
+  push:
+    name: Push gem to RubyGems.org
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write   # required for trusted publishing (OIDC)
+      contents: write   # required for `rake release` to push the release tag
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          ruby-version: ruby
+
+      - name: Run tests
+        run: bundle exec rake test
+        env:
+          RDLNATIVE_LIB: ''
+
+      - uses: rubygems/release-gem@v1
