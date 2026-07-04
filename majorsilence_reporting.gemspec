@@ -26,6 +26,9 @@ Gem::Specification.new do |spec|
   spec.files = Dir['lib/**/*.rb'] + Dir['LICENSE*'] + ['README.md']
   spec.require_paths = ['lib']
 
+  # fiddle was removed from default gems in Ruby 4.0; report_native.rb needs it explicitly.
+  spec.add_dependency 'fiddle', '~> 1.1'
+
   spec.add_development_dependency 'minitest', '~> 5.0'
   spec.add_development_dependency 'rake', '~> 13.0'
 end
