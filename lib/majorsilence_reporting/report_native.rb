@@ -102,11 +102,23 @@ module RdlLibrary
     fns
   end
 
+  # Fiddle returns a TYPE_VOIDP result as a Fiddle::Pointer on current Rubies and as an Integer
+  # address on older ones, so never call Integer methods (zero?) on it directly.
+  def self.address_of(value)
+    return 0 if value.nil?
+
+    value.respond_to?(:to_i) ? value.to_i : value
+  end
+
+  def self.null_pointer?(value)
+    address_of(value).zero?
+  end
+
   def self.rdl_last_error_str(fns)
     ptr = fns[:rdl_last_error].call
-    return 'unknown error' if ptr.nil? || ptr.zero?
+    return 'unknown error' if null_pointer?(ptr)
 
-    Fiddle::Pointer.new(ptr).to_s
+    Fiddle::Pointer.new(address_of(ptr)).to_s
   end
 end
 
@@ -183,7 +195,7 @@ class ReportNative
   def with_handle
     cs_ptr = @connection_string ? c_str(@connection_string) : Fiddle::NULL
     h = @fns[:rdl_report_open].call(c_str(@report_path), cs_ptr)
-    raise_last_error('rdl_report_open') if h.nil? || h.zero?
+    raise_last_error('rdl_report_open') if RdlLibrary.null_pointer?(h)
     begin
       @parameters.each do |name, value|
         ret = @fns[:rdl_report_set_param].call(h, c_str(name), c_str(value))
@@ -212,7 +224,7 @@ class ReportNative
 
   def raise_last_error(fn)
     ptr = @fns[:rdl_last_error].call
-    msg = (ptr && !ptr.zero?) ? Fiddle::Pointer.new(ptr).to_s : 'unknown error'
+    msg = RdlLibrary.null_pointer?(ptr) ? 'unknown error' : Fiddle::Pointer.new(RdlLibrary.address_of(ptr)).to_s
     raise "#{fn} failed: #{msg}"
   end
 end
