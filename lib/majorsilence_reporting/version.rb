@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module MajorsilenceReporting
-  VERSION = '26.0.2'
+  VERSION = '27.0.0.alpha.11'
 end
