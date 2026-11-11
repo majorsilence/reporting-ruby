@@ -1,0 +1,36 @@
+name: CI
+
+# Runs the integration tests against the real rdlnative library from the
+# latest stable and latest pre-release of majorsilence/Reporting, so the
+# tests render real PDF/CSV/HTML/XML output instead of being skipped.
+on:
+  push:
+    branches: [main, 'release/**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Ruby ${{ matrix.ruby }} / rdlnative ${{ matrix.channel }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: ['3.1', '3.3', ruby]
+        channel: [stable, prerelease]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Install native dependencies
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libfontconfig1 libfreetype6
+      - name: Fetch rdlnative (${{ matrix.channel }})
+        run: .github/scripts/fetch-rdlnative.sh ${{ matrix.channel }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Run tests (fail if any are skipped)
+        run: |
+          bundle exec rake test 2>&1 | tee test.log
+          if ! grep -q " 0 skips" test.log; then echo "::error::tests were skipped"; exit 1; fi
