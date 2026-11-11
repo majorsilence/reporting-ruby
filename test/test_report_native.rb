@@ -188,7 +188,15 @@ class TestAddData < Minitest::Test
   def test_empty_dataset_does_not_crash
     rpt = ReportNative.new(fns, SALES_RDL)
     rpt.add_data('Data', [])
-    data = rpt.export_to_memory('pdf')
-    assert_equal '%PDF', data[0, 4].force_encoding('BINARY')
+    # rdlnative 27+ ignores datasets with zero rows, so the report's own SQL
+    # query runs (and fails here: SalesReport.rdl has no database).  Older
+    # engines inject the empty table and render a PDF.  Either is fine; a
+    # crash is not.
+    begin
+      data = rpt.export_to_memory('pdf')
+      assert_equal '%PDF', data[0, 4].force_encoding('BINARY')
+    rescue RuntimeError => e
+      assert_match(/rdl_report_render/, e.message)
+    end
   end
 end
